@@ -22,13 +22,20 @@ def generate_skew_tent_trajectory(
     - otherwise, ``x_next = (1 - x) / (1 - threshold)``
     """
 
-    if not 0 < float(initial_condition) < 1:
+    initial_condition = float(initial_condition)
+    threshold = float(threshold)
+
+    if not np.isfinite(initial_condition):
+        raise ValueError("initial_condition must be finite")
+    if not np.isfinite(threshold):
+        raise ValueError("threshold must be finite")
+    if not 0 < initial_condition < 1:
         raise ValueError("initial_condition must satisfy 0 < initial_condition < 1")
-    if not 0 < float(threshold) < 1:
+    if not 0 < threshold < 1:
         raise ValueError("threshold must satisfy 0 < threshold < 1")
     if not isinstance(length, int):
         raise ValueError("length must be an integer")
-    if length != 3 and length < 10:
+    if length < 10:
         raise ValueError("length must be at least 10")
 
     trajectory = np.zeros(length, dtype=np.float64)
@@ -50,6 +57,8 @@ def normalize_to_unit_interval(x: np.ndarray, mode: str = "global") -> np.ndarra
     values = np.asarray(x, dtype=np.float64)
     if values.ndim != 2:
         raise ValueError("x must be a 2D array")
+    if not np.all(np.isfinite(values)):
+        raise ValueError("x must contain only finite values")
 
     if mode == "global":
         normalized = _min_max(values)

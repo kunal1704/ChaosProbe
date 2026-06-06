@@ -84,13 +84,24 @@ def _validate_descriptor_inputs(
 ) -> None:
     if values.ndim != 2:
         raise ValueError("values must be a 2D array")
+    if not np.all(np.isfinite(values)):
+        raise ValueError("values must contain only finite values")
     if np.any(values < 0) or np.any(values > 1):
         raise ValueError("values must lie in [0, 1]")
     if trajectory.ndim != 1:
         raise ValueError("trajectory must be a 1D array")
-    if not float(epsilon) > 0:
+    if not np.all(np.isfinite(trajectory)):
+        raise ValueError("trajectory must contain only finite values")
+
+    epsilon = float(epsilon)
+    threshold = float(threshold)
+    if not np.isfinite(epsilon):
+        raise ValueError("epsilon must be finite")
+    if not np.isfinite(threshold):
+        raise ValueError("threshold must be finite")
+    if not epsilon > 0:
         raise ValueError("epsilon must be greater than 0")
-    if not 0 < float(threshold) < 1:
+    if not 0 < threshold < 1:
         raise ValueError("threshold must satisfy 0 < threshold < 1")
 
 

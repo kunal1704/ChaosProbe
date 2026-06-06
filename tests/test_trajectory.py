@@ -11,10 +11,10 @@ def test_known_skew_tent_trajectory_example():
     trajectory = generate_skew_tent_trajectory(
         initial_condition=0.1,
         threshold=0.2,
-        length=3,
+        length=10,
     )
 
-    np.testing.assert_allclose(trajectory, np.array([0.1, 0.5, 0.625]))
+    np.testing.assert_allclose(trajectory[:3], np.array([0.1, 0.5, 0.625]))
     assert trajectory.dtype == np.float64
 
 
@@ -71,3 +71,16 @@ def test_normalization_rejects_invalid_inputs():
 
     with pytest.raises(ValueError):
         normalize_to_unit_interval(np.array([[1.0, 2.0]]), mode="sample")
+
+
+@pytest.mark.parametrize(
+    "values",
+    [
+        np.array([[np.nan, 1.0]]),
+        np.array([[np.inf, 1.0]]),
+        np.array([[-np.inf, 1.0]]),
+    ],
+)
+def test_normalization_rejects_non_finite_inputs(values):
+    with pytest.raises(ValueError):
+        normalize_to_unit_interval(values)

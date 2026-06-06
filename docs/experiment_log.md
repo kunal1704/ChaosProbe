@@ -33,3 +33,6 @@ finiteness, time-to-match, flattening, channel views, and invalid value
 validation.
 
 No scientific results exist yet.
+
+Core validation cleanup: strict trajectory length validation and finite-value
+checks added.

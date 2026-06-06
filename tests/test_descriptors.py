@@ -69,6 +69,10 @@ def test_invalid_values_outside_unit_interval_raise_value_error():
         (np.array([[0.1]]), np.array([[0.1, 0.2]]), 0.01, 0.2),
         (np.array([[0.1]]), np.array([0.1, 0.2]), 0.0, 0.2),
         (np.array([[0.1]]), np.array([0.1, 0.2]), 0.01, 1.0),
+        (np.array([[np.nan]]), np.array([0.1, 0.2]), 0.01, 0.2),
+        (np.array([[0.1]]), np.array([np.inf, 0.2]), 0.01, 0.2),
+        (np.array([[0.1]]), np.array([0.1, 0.2]), np.inf, 0.2),
+        (np.array([[0.1]]), np.array([0.1, 0.2]), 0.01, np.nan),
     ],
 )
 def test_invalid_descriptor_inputs_raise_value_error(

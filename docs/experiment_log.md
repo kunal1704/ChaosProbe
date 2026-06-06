@@ -54,3 +54,14 @@ baselines were implemented for descriptor tensor comparisons. Channel-wise
 representation metrics were added for cosine similarity, linear CKA, pairwise
 distance correlation, neighborhood preservation, and anisotropy. No scientific
 results exist yet.
+
+---
+
+## Experiment 001 scaffold
+
+A non-plotting end-to-end pipeline was added for Experiment 001.
+`prompts_001.json` now contains 80 neutral prompts across factual, reasoning,
+mathematical, and conversational categories. The script supports GPT-2 and
+DistilGPT2 through the CLI, computes ChaosProbe and baseline descriptor metrics,
+and writes JSON plus Markdown outputs. No scientific interpretation is included
+unless a successful run is reviewed separately.

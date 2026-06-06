@@ -1,6 +1,402 @@
-{
-  "experiment_id": "experiment_001_descriptor_baselines",
-  "status": "planned",
-  "notes": "Prompt fixtures will be added when Experiment 001 is implemented."
-}
-
+[
+  {
+    "id": "factual_001",
+    "category": "factual",
+    "text": "What is the capital city of Canada?"
+  },
+  {
+    "id": "factual_002",
+    "category": "factual",
+    "text": "Name the largest ocean on Earth."
+  },
+  {
+    "id": "factual_003",
+    "category": "factual",
+    "text": "What planet is known for its prominent rings?"
+  },
+  {
+    "id": "factual_004",
+    "category": "factual",
+    "text": "Who wrote the novel Pride and Prejudice?"
+  },
+  {
+    "id": "factual_005",
+    "category": "factual",
+    "text": "What is the chemical symbol for oxygen?"
+  },
+  {
+    "id": "factual_006",
+    "category": "factual",
+    "text": "Which continent contains the Sahara Desert?"
+  },
+  {
+    "id": "factual_007",
+    "category": "factual",
+    "text": "What instrument is used to measure temperature?"
+  },
+  {
+    "id": "factual_008",
+    "category": "factual",
+    "text": "What is the main language spoken in Brazil?"
+  },
+  {
+    "id": "factual_009",
+    "category": "factual",
+    "text": "Which animal is commonly called the ship of the desert?"
+  },
+  {
+    "id": "factual_010",
+    "category": "factual",
+    "text": "What is the currency of Japan?"
+  },
+  {
+    "id": "factual_011",
+    "category": "factual",
+    "text": "Which metal is liquid at room temperature?"
+  },
+  {
+    "id": "factual_012",
+    "category": "factual",
+    "text": "What is the tallest mountain above sea level?"
+  },
+  {
+    "id": "factual_013",
+    "category": "factual",
+    "text": "Which country is home to the city of Barcelona?"
+  },
+  {
+    "id": "factual_014",
+    "category": "factual",
+    "text": "What body system includes the heart and blood vessels?"
+  },
+  {
+    "id": "factual_015",
+    "category": "factual",
+    "text": "What natural satellite orbits Earth?"
+  },
+  {
+    "id": "factual_016",
+    "category": "factual",
+    "text": "Which element has atomic number one?"
+  },
+  {
+    "id": "factual_017",
+    "category": "factual",
+    "text": "What is the freezing point of water in Celsius?"
+  },
+  {
+    "id": "factual_018",
+    "category": "factual",
+    "text": "Which city hosted the first modern Olympic Games?"
+  },
+  {
+    "id": "factual_019",
+    "category": "factual",
+    "text": "What is the primary gas in Earth's atmosphere?"
+  },
+  {
+    "id": "factual_020",
+    "category": "factual",
+    "text": "Which organ is primarily responsible for filtering blood?"
+  },
+  {
+    "id": "reasoning_001",
+    "category": "reasoning",
+    "text": "If all roses are flowers and some flowers fade quickly, what can be concluded about roses?"
+  },
+  {
+    "id": "reasoning_002",
+    "category": "reasoning",
+    "text": "A train is faster than a bicycle, and a bicycle is faster than walking. Which is fastest?"
+  },
+  {
+    "id": "reasoning_003",
+    "category": "reasoning",
+    "text": "If a book is on the table and the table is in the room, where is the book?"
+  },
+  {
+    "id": "reasoning_004",
+    "category": "reasoning",
+    "text": "Three boxes are labeled red, blue, and green. If the red box is empty, which boxes might contain items?"
+  },
+  {
+    "id": "reasoning_005",
+    "category": "reasoning",
+    "text": "If it rains, the ground gets wet. The ground is dry. What does that suggest?"
+  },
+  {
+    "id": "reasoning_006",
+    "category": "reasoning",
+    "text": "A cup is inside a cabinet, and the cabinet is closed. Is the cup visible from outside?"
+  },
+  {
+    "id": "reasoning_007",
+    "category": "reasoning",
+    "text": "If two tasks take one hour each and are done one after another, how long do they take?"
+  },
+  {
+    "id": "reasoning_008",
+    "category": "reasoning",
+    "text": "A store opens after sunrise and closes before sunset. Is it open at midnight?"
+  },
+  {
+    "id": "reasoning_009",
+    "category": "reasoning",
+    "text": "If Sam is taller than Lee and Lee is taller than Pat, who is shortest?"
+  },
+  {
+    "id": "reasoning_010",
+    "category": "reasoning",
+    "text": "If a key opens only one lock and this key opens the front lock, what lock does it open?"
+  },
+  {
+    "id": "reasoning_011",
+    "category": "reasoning",
+    "text": "A recipe needs flour before mixing. If no flour is added, can the recipe be mixed correctly?"
+  },
+  {
+    "id": "reasoning_012",
+    "category": "reasoning",
+    "text": "If every ticket has a seat number, and this paper has no seat number, is it certainly a ticket?"
+  },
+  {
+    "id": "reasoning_013",
+    "category": "reasoning",
+    "text": "Two paths lead to the same park. If one path is closed, can the park still be reachable?"
+  },
+  {
+    "id": "reasoning_014",
+    "category": "reasoning",
+    "text": "If a lamp needs electricity and the power is off, will the lamp normally turn on?"
+  },
+  {
+    "id": "reasoning_015",
+    "category": "reasoning",
+    "text": "A jar has more blue marbles than red marbles. Which color is more common in the jar?"
+  },
+  {
+    "id": "reasoning_016",
+    "category": "reasoning",
+    "text": "If the meeting is after lunch and lunch is at noon, can the meeting be at 10 a.m.?"
+  },
+  {
+    "id": "reasoning_017",
+    "category": "reasoning",
+    "text": "If a number is even, it is divisible by two. Is eight divisible by two?"
+  },
+  {
+    "id": "reasoning_018",
+    "category": "reasoning",
+    "text": "A plant needs water to stay healthy. What might happen if it is never watered?"
+  },
+  {
+    "id": "reasoning_019",
+    "category": "reasoning",
+    "text": "If the blue folder is inside the top drawer, where should someone look for it?"
+  },
+  {
+    "id": "reasoning_020",
+    "category": "reasoning",
+    "text": "If a road sign says turn left only, which turn is allowed?"
+  },
+  {
+    "id": "mathematical_001",
+    "category": "mathematical",
+    "text": "What is 12 plus 8?"
+  },
+  {
+    "id": "mathematical_002",
+    "category": "mathematical",
+    "text": "What is 7 multiplied by 6?"
+  },
+  {
+    "id": "mathematical_003",
+    "category": "mathematical",
+    "text": "If you have 15 apples and give away 4, how many remain?"
+  },
+  {
+    "id": "mathematical_004",
+    "category": "mathematical",
+    "text": "What is half of 50?"
+  },
+  {
+    "id": "mathematical_005",
+    "category": "mathematical",
+    "text": "What is 3 squared?"
+  },
+  {
+    "id": "mathematical_006",
+    "category": "mathematical",
+    "text": "What is the sum of 2, 4, and 6?"
+  },
+  {
+    "id": "mathematical_007",
+    "category": "mathematical",
+    "text": "If a rectangle has length 5 and width 3, what is its area?"
+  },
+  {
+    "id": "mathematical_008",
+    "category": "mathematical",
+    "text": "What is 100 divided by 10?"
+  },
+  {
+    "id": "mathematical_009",
+    "category": "mathematical",
+    "text": "What number comes after 999?"
+  },
+  {
+    "id": "mathematical_010",
+    "category": "mathematical",
+    "text": "What is 18 minus 7?"
+  },
+  {
+    "id": "mathematical_011",
+    "category": "mathematical",
+    "text": "If a dozen means 12, how many are in two dozen?"
+  },
+  {
+    "id": "mathematical_012",
+    "category": "mathematical",
+    "text": "What is 5 percent of 200?"
+  },
+  {
+    "id": "mathematical_013",
+    "category": "mathematical",
+    "text": "What is the perimeter of a square with side length 4?"
+  },
+  {
+    "id": "mathematical_014",
+    "category": "mathematical",
+    "text": "What is 9 plus 10?"
+  },
+  {
+    "id": "mathematical_015",
+    "category": "mathematical",
+    "text": "If x equals 3, what is x plus 2?"
+  },
+  {
+    "id": "mathematical_016",
+    "category": "mathematical",
+    "text": "What is 64 divided by 8?"
+  },
+  {
+    "id": "mathematical_017",
+    "category": "mathematical",
+    "text": "What is the average of 2, 4, and 8?"
+  },
+  {
+    "id": "mathematical_018",
+    "category": "mathematical",
+    "text": "If a bag has 3 red balls and 2 blue balls, how many balls are there?"
+  },
+  {
+    "id": "mathematical_019",
+    "category": "mathematical",
+    "text": "What is 11 times 11?"
+  },
+  {
+    "id": "mathematical_020",
+    "category": "mathematical",
+    "text": "What is one third of 30?"
+  },
+  {
+    "id": "conversational_001",
+    "category": "conversational",
+    "text": "How would you greet a colleague in the morning?"
+  },
+  {
+    "id": "conversational_002",
+    "category": "conversational",
+    "text": "Write a polite reminder about an upcoming meeting."
+  },
+  {
+    "id": "conversational_003",
+    "category": "conversational",
+    "text": "How can someone thank a friend for helping them move?"
+  },
+  {
+    "id": "conversational_004",
+    "category": "conversational",
+    "text": "Suggest a friendly way to ask for directions."
+  },
+  {
+    "id": "conversational_005",
+    "category": "conversational",
+    "text": "What is a calm way to ask someone to repeat themselves?"
+  },
+  {
+    "id": "conversational_006",
+    "category": "conversational",
+    "text": "How might someone invite a neighbor for coffee?"
+  },
+  {
+    "id": "conversational_007",
+    "category": "conversational",
+    "text": "Write a short note wishing someone a good weekend."
+  },
+  {
+    "id": "conversational_008",
+    "category": "conversational",
+    "text": "How can a student ask a teacher for clarification?"
+  },
+  {
+    "id": "conversational_009",
+    "category": "conversational",
+    "text": "Suggest a polite response to good news."
+  },
+  {
+    "id": "conversational_010",
+    "category": "conversational",
+    "text": "How would you introduce yourself at a community event?"
+  },
+  {
+    "id": "conversational_011",
+    "category": "conversational",
+    "text": "Write a brief message confirming an appointment time."
+  },
+  {
+    "id": "conversational_012",
+    "category": "conversational",
+    "text": "How can someone politely decline an invitation?"
+  },
+  {
+    "id": "conversational_013",
+    "category": "conversational",
+    "text": "Suggest a friendly opening line for a phone call."
+  },
+  {
+    "id": "conversational_014",
+    "category": "conversational",
+    "text": "How might someone ask a coworker about their weekend?"
+  },
+  {
+    "id": "conversational_015",
+    "category": "conversational",
+    "text": "Write a short apology for arriving late."
+  },
+  {
+    "id": "conversational_016",
+    "category": "conversational",
+    "text": "How can someone express appreciation after a shared meal?"
+  },
+  {
+    "id": "conversational_017",
+    "category": "conversational",
+    "text": "Suggest a respectful way to ask for feedback."
+  },
+  {
+    "id": "conversational_018",
+    "category": "conversational",
+    "text": "Write a brief reply accepting a meeting invitation."
+  },
+  {
+    "id": "conversational_019",
+    "category": "conversational",
+    "text": "How would you wish someone success before a presentation?"
+  },
+  {
+    "id": "conversational_020",
+    "category": "conversational",
+    "text": "Suggest a warm closing line for an email."
+  }
+]

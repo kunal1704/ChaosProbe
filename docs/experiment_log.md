@@ -44,3 +44,13 @@ checks added.
 Token-level input embeddings were implemented for frozen HuggingFace
 transformers. GPT-2 and DistilGPT2 are supported by the interface, and no
 generation or downstream task logic was added. No scientific results exist yet.
+
+---
+
+## Implementation Step: Baselines and representation metrics
+
+Shuffled trajectory, random trajectory, Gaussian value, and uniform value
+baselines were implemented for descriptor tensor comparisons. Channel-wise
+representation metrics were added for cosine similarity, linear CKA, pairwise
+distance correlation, neighborhood preservation, and anisotropy. No scientific
+results exist yet.

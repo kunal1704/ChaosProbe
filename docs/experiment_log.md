@@ -36,3 +36,11 @@ No scientific results exist yet.
 
 Core validation cleanup: strict trajectory length validation and finite-value
 checks added.
+
+---
+
+## Implementation Step: HuggingFace embedding extraction
+
+Token-level input embeddings were implemented for frozen HuggingFace
+transformers. GPT-2 and DistilGPT2 are supported by the interface, and no
+generation or downstream task logic was added. No scientific results exist yet.

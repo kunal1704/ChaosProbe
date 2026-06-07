@@ -65,3 +65,11 @@ mathematical, and conversational categories. The script supports GPT-2 and
 DistilGPT2 through the CLI, computes ChaosProbe and baseline descriptor metrics,
 and writes JSON plus Markdown outputs. No scientific interpretation is included
 unless a successful run is reviewed separately.
+
+---
+
+## Experiment 001 statistical analysis
+
+Paired chaos-vs-baseline comparisons were added for Experiment 001 outputs.
+Bootstrap confidence intervals, Wilcoxon signed-rank p-values, and paired effect
+sizes were added. No downstream task or safety claims were added.

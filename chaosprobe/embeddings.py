@@ -1,7 +1,9 @@
-"""Embedding helpers for ChaosProbe.
+"""Frozen HuggingFace input embedding extraction for ChaosProbe.
 
-This module provides token-level input embedding extraction for frozen
-HuggingFace transformer models without generation or downstream task logic.
+ChaosProbe studies representation geometry rather than language generation.
+This module loads supported transformer models, tokenizes supplied texts, and
+returns token-level input embedding matrices. It does not request logits,
+hidden states, generated text, or task-specific predictions.
 """
 
 from __future__ import annotations
@@ -18,7 +20,7 @@ SUPPORTED_DEVICES = {"cpu", "cuda"}
 
 
 def is_huggingface_available() -> bool:
-    """Return ``True`` only if both ``torch`` and ``transformers`` can import."""
+    """Return ``True`` only when both ``torch`` and ``transformers`` import."""
 
     try:
         import_module("torch")
@@ -34,7 +36,12 @@ def get_token_embeddings(
     layer: str = "input",
     device: str = "cpu",
 ) -> dict[str, Any]:
-    """Extract token-level input embeddings for each text independently."""
+    """Extract token-level input embeddings for each text independently.
+
+    The returned item embeddings have shape ``T x D`` and dtype ``float64``.
+    Each text is tokenized separately so prompt-level metrics can be paired back
+    to the source prompt without sequence packing.
+    """
 
     _validate_request(texts, model_name, layer, device)
     torch, AutoModel, AutoTokenizer = _load_huggingface_stack()
@@ -55,6 +62,7 @@ def get_token_embeddings(
         encoded = tokenizer(text, return_tensors="pt")
         input_ids = encoded["input_ids"].to(torch_device)
 
+        # Only the embedding lookup is used; no forward pass or generation.
         with torch.no_grad():
             embeddings = embedding_layer(input_ids)
 
@@ -83,6 +91,8 @@ def _validate_request(
     layer: str,
     device: str,
 ) -> None:
+    """Validate the public embedding extraction request before model loading."""
+
     if not texts:
         raise ValueError("texts must not be empty")
     if model_name not in SUPPORTED_MODELS:
@@ -109,6 +119,8 @@ def _validate_request(
 
 
 def _load_huggingface_stack():
+    """Import the optional HuggingFace stack lazily for lightweight tests."""
+
     try:
         torch = import_module("torch")
         transformers = import_module("transformers")

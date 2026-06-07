@@ -1,8 +1,9 @@
 """Statistical analysis for Experiment 001 descriptor-baseline metrics.
 
-This script performs paired representation-level comparisons between ChaosProbe
-descriptor metrics and baseline descriptor metrics. It does not run models,
-generate text, plot results, or evaluate downstream tasks.
+This script reads Experiment 001 ``per_prompt_metrics.json`` files and performs
+paired chaos-vs-baseline comparisons across prompts. It writes representation-
+level statistical summaries only; it does not run models, generate text, plot
+results, or evaluate downstream performance.
 """
 
 from __future__ import annotations
@@ -40,6 +41,8 @@ PRIMARY_METRICS = [
 
 
 def parse_args() -> argparse.Namespace:
+    """Parse CLI settings for Experiment 001 statistical analysis."""
+
     parser = argparse.ArgumentParser(description="Analyze Experiment 001 outputs.")
     parser.add_argument("--models", nargs="+", default=["gpt2", "distilgpt2"])
     parser.add_argument("--input-dir", type=Path, default=Path("outputs") / "experiment_001")
@@ -54,6 +57,8 @@ def parse_args() -> argparse.Namespace:
 
 
 def load_per_prompt_metrics(input_dir: Path, model: str) -> list[dict[str, Any]]:
+    """Load per-prompt metric rows for one model output directory."""
+
     path = input_dir / model / "per_prompt_metrics.json"
     if not path.exists():
         raise FileNotFoundError(f"missing per-prompt metrics file: {path}")
@@ -127,6 +132,8 @@ def bootstrap_mean_difference_ci(
     bootstrap_samples: int,
     seed: int,
 ) -> tuple[float, float]:
+    """Bootstrap a percentile confidence interval for paired differences."""
+
     if bootstrap_samples <= 0:
         raise ValueError("bootstrap_samples must be greater than 0")
     if differences.size == 0:
@@ -140,6 +147,8 @@ def bootstrap_mean_difference_ci(
 
 
 def wilcoxon_p_value(differences: np.ndarray) -> float:
+    """Return a two-sided Wilcoxon p-value with zero-difference fallback."""
+
     if differences.size == 0 or np.all(differences == 0):
         return 1.0
     try:
@@ -152,6 +161,8 @@ def wilcoxon_p_value(differences: np.ndarray) -> float:
 
 
 def cohens_dz(differences: np.ndarray) -> float:
+    """Compute Cohen's dz for paired samples."""
+
     if differences.size < 2:
         return 0.0
     std = np.std(differences, ddof=1)
@@ -166,6 +177,8 @@ def analyze_rows(
     bootstrap_samples: int,
     seed: int,
 ) -> list[dict[str, Any]]:
+    """Build all chaos-vs-baseline comparisons for one model."""
+
     grouped = group_metric_values(rows)
     comparisons: list[dict[str, Any]] = []
 
@@ -199,10 +212,14 @@ def analyze_rows(
 
 
 def prompt_count(rows: list[dict[str, Any]]) -> int:
+    """Count unique prompts represented in per-prompt metric rows."""
+
     return len({row["prompt_id"] for row in rows})
 
 
 def write_json(path: Path, payload: Any) -> None:
+    """Write JSON output, creating parent directories as needed."""
+
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8") as handle:
         json.dump(payload, handle, indent=2)
@@ -214,6 +231,8 @@ def write_summary(
     count: int,
     comparisons: list[dict[str, Any]],
 ) -> None:
+    """Write a compact Markdown summary for one model's statistical output."""
+
     strongest = sorted(comparisons, key=lambda row: abs(row["cohens_dz"]), reverse=True)[:5]
     strongest_anisotropy = [
         row for row in strongest_by_effect(comparisons) if row["metric"] == "anisotropy_channel"
@@ -246,10 +265,14 @@ def write_summary(
 
 
 def strongest_by_effect(comparisons: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Sort comparison rows by absolute paired effect size."""
+
     return sorted(comparisons, key=lambda row: abs(row["cohens_dz"]), reverse=True)
 
 
 def format_rows(rows: list[dict[str, Any]]) -> list[str]:
+    """Format comparison rows for Markdown summaries."""
+
     if not rows:
         return ["- No comparisons available."]
 
@@ -264,6 +287,8 @@ def format_rows(rows: list[dict[str, Any]]) -> list[str]:
 
 
 def run_analysis(args: argparse.Namespace) -> tuple[list[dict[str, Any]], list[str]]:
+    """Run analysis for all requested models and collect missing-output notes."""
+
     combined: list[dict[str, Any]] = []
     missing: list[str] = []
 
@@ -292,6 +317,8 @@ def run_analysis(args: argparse.Namespace) -> tuple[list[dict[str, Any]], list[s
 
 
 def main() -> None:
+    """CLI entry point."""
+
     args = parse_args()
     combined, missing = run_analysis(args)
     for message in missing:

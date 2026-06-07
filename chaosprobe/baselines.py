@@ -1,7 +1,9 @@
 """Baseline descriptor generators for ChaosProbe.
 
-These helpers create non-chaotic or perturbed alternatives for comparing
-descriptor tensors against controlled reference conditions.
+The baselines in this module preserve the same ``T x D x 4`` descriptor shape as
+the primary ChaosProbe descriptors. They perturb either the trajectory or the
+normalized values so Experiment 001 can compare descriptor geometry against
+controlled non-chaotic and noise-based constructions.
 """
 
 from __future__ import annotations
@@ -18,7 +20,11 @@ def shuffled_trajectory_descriptors(
     threshold: float,
     seed: int = 42,
 ) -> np.ndarray:
-    """Compute descriptors after shuffling a copy of the trajectory."""
+    """Compute descriptors after shuffling a copy of the trajectory.
+
+    The source trajectory is not mutated, which keeps paired comparisons
+    reproducible within an experiment run.
+    """
 
     trajectory_copy = _validate_trajectory(trajectory).copy()
     rng = np.random.default_rng(seed)
@@ -93,6 +99,8 @@ def uniform_value_baseline(
 
 
 def _validate_values(values: np.ndarray) -> np.ndarray:
+    """Validate normalized value matrices before baseline perturbation."""
+
     value_matrix = np.asarray(values, dtype=np.float64)
     if value_matrix.ndim != 2:
         raise ValueError("values must be a 2D array")
@@ -104,6 +112,8 @@ def _validate_values(values: np.ndarray) -> np.ndarray:
 
 
 def _validate_trajectory(trajectory: np.ndarray) -> np.ndarray:
+    """Validate trajectory arrays before baseline descriptor extraction."""
+
     trajectory_vector = np.asarray(trajectory, dtype=np.float64)
     if trajectory_vector.ndim != 1:
         raise ValueError("trajectory must be a 1D array")
@@ -113,6 +123,8 @@ def _validate_trajectory(trajectory: np.ndarray) -> np.ndarray:
 
 
 def _validate_noise_scale(noise_scale: float) -> float:
+    """Validate positive finite noise scale parameters."""
+
     noise_scale = float(noise_scale)
     if not np.isfinite(noise_scale) or noise_scale <= 0:
         raise ValueError("noise_scale must be finite and greater than 0")

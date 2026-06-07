@@ -1,7 +1,9 @@
-"""Trajectory utilities for ChaosProbe.
+"""Trajectory construction and normalization utilities for ChaosProbe.
 
-ChaosProbe treats normalized embedding coordinates as target values in the unit
-interval and compares them against trajectories from a skew-tent map.
+This module is the bridge between transformer embedding matrices and the
+trajectory-descriptor layer. It normalizes token-by-dimension embedding matrices
+into the unit interval and generates the deterministic skew-tent trajectory used
+as the reference path for descriptor extraction.
 """
 
 from __future__ import annotations
@@ -14,12 +16,15 @@ def generate_skew_tent_trajectory(
     threshold: float,
     length: int,
 ) -> np.ndarray:
-    """Generate a trajectory from the skew-tent map.
+    """Generate a deterministic skew-tent trajectory.
 
     The recurrence follows the ChaosFEX skew-tent sampler:
 
     - if ``x < threshold``, then ``x_next = x / threshold``
     - otherwise, ``x_next = (1 - x) / (1 - threshold)``
+
+    Returns a 1D ``float64`` array of length ``length`` whose first element is
+    the supplied initial condition.
     """
 
     initial_condition = float(initial_condition)
@@ -52,7 +57,12 @@ def generate_skew_tent_trajectory(
 
 
 def normalize_to_unit_interval(x: np.ndarray, mode: str = "global") -> np.ndarray:
-    """Normalize a 2D array to ``[0, 1]`` using the requested min-max mode."""
+    """Normalize a 2D embedding matrix to ``[0, 1]``.
+
+    ``global`` scales over the full matrix, ``token`` scales each row, and
+    ``dimension`` scales each column. Constant groups map to zeros, which keeps
+    downstream descriptor extraction finite and shape-preserving.
+    """
 
     values = np.asarray(x, dtype=np.float64)
     if values.ndim != 2:

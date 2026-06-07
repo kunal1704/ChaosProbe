@@ -1,4 +1,9 @@
-"""Representation metrics for ChaosProbe descriptor analysis."""
+"""Representation metrics for ChaosProbe descriptor analysis.
+
+Metrics in this module compare ``T x D`` matrices, usually a normalized
+embedding matrix against one descriptor channel. Outputs are plain Python floats
+so experiment scripts can write JSON without custom encoders.
+"""
 
 from __future__ import annotations
 
@@ -8,7 +13,10 @@ from scipy.stats import spearmanr
 
 
 def mean_cosine_similarity(A: np.ndarray, B: np.ndarray) -> float:
-    """Average row-wise cosine similarity for matrices with the same shape."""
+    """Average row-wise cosine similarity for matrices with the same shape.
+
+    Rows with zero norm contribute ``0.0`` rather than producing NaN values.
+    """
 
     matrix_a, matrix_b = _validate_same_shape_2d(A, B)
     numerator = np.sum(matrix_a * matrix_b, axis=1)
@@ -23,7 +31,10 @@ def mean_cosine_similarity(A: np.ndarray, B: np.ndarray) -> float:
 
 
 def linear_cka(A: np.ndarray, B: np.ndarray) -> float:
-    """Compute linear centered kernel alignment for two 2D representations."""
+    """Compute linear centered kernel alignment for two 2D representations.
+
+    Inputs must share rows, but feature dimensions may differ.
+    """
 
     matrix_a, matrix_b = _validate_same_rows_2d(A, B)
     centered_a = matrix_a - np.mean(matrix_a, axis=0, keepdims=True)
@@ -158,6 +169,8 @@ def compute_channel_metrics(
 
 
 def _nearest_neighbors(matrix: np.ndarray, k: int) -> np.ndarray:
+    """Return nearest-neighbor indices using Euclidean distances."""
+
     distances = np.linalg.norm(matrix[:, None, :] - matrix[None, :, :], axis=2)
     np.fill_diagonal(distances, np.inf)
     return np.argsort(distances, axis=1)[:, :k]
@@ -185,6 +198,8 @@ def _validate_same_rows_2d(
 
 
 def _validate_2d(values: np.ndarray, name: str) -> np.ndarray:
+    """Validate finite 2D metric inputs and coerce to ``float64``."""
+
     matrix = np.asarray(values, dtype=np.float64)
     if matrix.ndim != 2:
         raise ValueError(f"{name} must be a 2D array")
@@ -194,6 +209,8 @@ def _validate_2d(values: np.ndarray, name: str) -> np.ndarray:
 
 
 def _validate_descriptor_tensor(desc: np.ndarray) -> np.ndarray:
+    """Validate finite ``T x D x C`` descriptor tensors."""
+
     descriptor_tensor = np.asarray(desc, dtype=np.float64)
     if descriptor_tensor.ndim != 3:
         raise ValueError("desc must be a 3D descriptor tensor")

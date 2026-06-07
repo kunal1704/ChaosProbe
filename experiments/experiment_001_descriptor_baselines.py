@@ -1,8 +1,10 @@
 """Experiment 001: non-plotting descriptor-baseline pipeline.
 
-This script extracts frozen transformer input embeddings, computes ChaosProbe
-descriptor tensors and baseline descriptor tensors, and writes representation
-metrics for review. It does not generate text or run downstream tasks.
+This script runs the first end-to-end representation-level ChaosProbe workflow:
+static prompts -> frozen input embeddings -> normalization -> trajectory
+descriptors -> baseline descriptors -> channel-wise metrics -> JSON/Markdown
+outputs. It does not generate text, modify prompts, plot results, or evaluate
+downstream tasks.
 """
 
 from __future__ import annotations
@@ -45,6 +47,8 @@ METHODS = [
 
 
 def parse_args() -> argparse.Namespace:
+    """Parse CLI settings for a lightweight or full Experiment 001 run."""
+
     parser = argparse.ArgumentParser(description="Run ChaosProbe Experiment 001.")
     parser.add_argument("--models", nargs="+", default=["gpt2"], choices=["gpt2", "distilgpt2"])
     parser.add_argument("--max-prompts", type=int, default=8)
@@ -64,6 +68,8 @@ def parse_args() -> argparse.Namespace:
 
 
 def load_prompts(path: Path = PROMPT_PATH) -> list[dict[str, str]]:
+    """Load and validate the static neutral prompt dataset."""
+
     with path.open("r", encoding="utf-8") as handle:
         prompts = json.load(handle)
 
@@ -84,6 +90,8 @@ def select_prompts(
     prompts: list[dict[str, str]],
     max_prompts: int,
 ) -> list[dict[str, str]]:
+    """Select a deterministic prefix of prompts for smoke runs."""
+
     if max_prompts < 0:
         raise ValueError("max_prompts must be greater than or equal to 0")
     if max_prompts == 0:
@@ -92,6 +100,8 @@ def select_prompts(
 
 
 def aggregate_metrics(per_prompt_metrics: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Aggregate per-prompt metric rows into mean/std/count summaries."""
+
     grouped: dict[tuple[str, int, str], list[float]] = defaultdict(list)
     identity_keys = {"prompt_id", "category", "method", "channel"}
 
@@ -122,6 +132,8 @@ def run_model(
     prompts: list[dict[str, str]],
     args: argparse.Namespace,
 ) -> Path:
+    """Run Experiment 001 for one model and write all output files."""
+
     output_dir = args.output_dir / model_name
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -149,6 +161,7 @@ def run_model(
             args,
         )
 
+        # Keep a small token sample for auditability without storing embeddings.
         if len(sample_tokens) < 3:
             sample_tokens.append(
                 {
@@ -195,6 +208,8 @@ def compute_all_descriptors(
     trajectory: np.ndarray,
     args: argparse.Namespace,
 ) -> dict[str, np.ndarray]:
+    """Compute ChaosProbe and baseline descriptor tensors for one prompt."""
+
     return {
         "chaos": compute_descriptors(
             normalized,
@@ -240,6 +255,8 @@ def build_config(
     prompts: list[dict[str, str]],
     args: argparse.Namespace,
 ) -> dict[str, Any]:
+    """Build JSON-serializable run metadata for one model output directory."""
+
     return {
         "experiment_id": "experiment_001_descriptor_baselines",
         "model_name": model_name,
@@ -260,11 +277,15 @@ def build_config(
 
 
 def write_json(path: Path, payload: Any) -> None:
+    """Write indented JSON using the standard library encoder."""
+
     with path.open("w", encoding="utf-8") as handle:
         json.dump(payload, handle, indent=2)
 
 
 def write_summary_markdown(path: Path, config: dict[str, Any]) -> None:
+    """Write a human-readable run summary without scientific interpretation."""
+
     params = config["parameters"]
     lines = [
         "# Experiment 001 Descriptor Baselines",
@@ -306,6 +327,8 @@ def write_summary_markdown(path: Path, config: dict[str, Any]) -> None:
 
 
 def main() -> None:
+    """CLI entry point."""
+
     args = parse_args()
     prompts = select_prompts(load_prompts(), args.max_prompts)
     for model_name in args.models:

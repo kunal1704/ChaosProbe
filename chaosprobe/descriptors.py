@@ -1,7 +1,9 @@
-"""Descriptor extraction for ChaosProbe.
+"""Trajectory-derived descriptor extraction for ChaosProbe.
 
-The descriptor tensor is the scientific object of study and is preserved with
-shape ``T x D x 4``.
+The central object produced here is the descriptor tensor with shape
+``T x D x 4``. Channels are kept separate: TTSS, energy, time-to-match, and
+entropy. The module deliberately does not compress descriptor channels back into
+the original embedding dimension.
 """
 
 from __future__ import annotations
@@ -22,7 +24,12 @@ def compute_descriptors(
     epsilon: float,
     threshold: float,
 ) -> np.ndarray:
-    """Compute TTSS, energy, time-to-match, and entropy descriptors."""
+    """Compute TTSS, energy, time-to-match, and entropy descriptors.
+
+    ``values`` is a normalized ``T x D`` matrix. For each scalar coordinate, the
+    first trajectory point within ``epsilon`` defines the path prefix used to
+    compute all four descriptor channels.
+    """
 
     value_matrix = np.asarray(values, dtype=np.float64)
     trajectory_vector = np.asarray(trajectory, dtype=np.float64)
@@ -39,6 +46,7 @@ def compute_descriptors(
             match_indices = np.flatnonzero(np.abs(trajectory_vector - value) < epsilon)
             match_idx = int(match_indices[0]) if match_indices.size else len(trajectory_vector)
 
+            # Match at index 0 still contributes the initial trajectory point.
             if match_idx > 0:
                 path = trajectory_vector[:match_idx]
             else:
@@ -54,7 +62,11 @@ def compute_descriptors(
 
 
 def flatten_descriptors(desc: np.ndarray) -> np.ndarray:
-    """Convert a ``(T, D, C)`` descriptor tensor into ``(T, D * C)``."""
+    """Convert a ``(T, D, C)`` descriptor tensor into ``(T, D * C)``.
+
+    This is a view helper for conventional matrix metrics, not a scientific
+    reduction of the descriptor object.
+    """
 
     descriptor_tensor = np.asarray(desc)
     if descriptor_tensor.ndim != 3:
@@ -65,7 +77,7 @@ def flatten_descriptors(desc: np.ndarray) -> np.ndarray:
 
 
 def channel_view(desc: np.ndarray, channel: int) -> np.ndarray:
-    """Return a single descriptor channel as a ``(T, D)`` view."""
+    """Return one descriptor channel as a ``(T, D)`` matrix view."""
 
     descriptor_tensor = np.asarray(desc)
     if descriptor_tensor.ndim != 3:

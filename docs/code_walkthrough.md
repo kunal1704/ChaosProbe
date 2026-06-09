@@ -74,7 +74,8 @@ writes JSON plus Markdown outputs.
 `experiments/analyze_experiment_001.py` reads `per_prompt_metrics.json` outputs
 and performs paired chaos-vs-baseline comparisons across prompts. It computes
 mean differences, bootstrap confidence intervals, Wilcoxon signed-rank
-p-values, and paired Cohen's dz effect sizes. This is representation-level
+p-values, paired Cohen's dz effect sizes, Benjamini-Hochberg FDR-corrected
+q-values, and compact primary-result tables. This is representation-level
 statistics only.
 
 ## 11. Output files

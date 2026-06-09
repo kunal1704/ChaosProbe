@@ -38,6 +38,16 @@ PRIMARY_METRICS = [
     "pairwise_distance_correlation",
     "neighborhood_preservation",
 ]
+PRIMARY_REPORTING_METRICS = [
+    "anisotropy_channel",
+    "mean_cosine_similarity",
+]
+SECONDARY_REPORTING_METRICS = [
+    "linear_cka",
+    "pairwise_distance_correlation",
+    "neighborhood_preservation",
+]
+CONTROL_BASELINES = {"shuffled_trajectory", "random_trajectory"}
 
 
 def parse_args() -> argparse.Namespace:
@@ -53,6 +63,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--bootstrap-samples", type=int, default=5000)
     parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--alpha", type=float, default=0.05)
     return parser.parse_args()
 
 
@@ -160,6 +171,33 @@ def wilcoxon_p_value(differences: np.ndarray) -> float:
     return float(result.pvalue)
 
 
+def benjamini_hochberg(p_values: list[float]) -> list[float]:
+    """Return Benjamini-Hochberg adjusted q-values in input order."""
+
+    if not p_values:
+        return []
+
+    p_array = np.asarray(p_values, dtype=np.float64)
+    if not np.all(np.isfinite(p_array)):
+        raise ValueError("p_values must contain only finite values")
+    if np.any(p_array < 0) or np.any(p_array > 1):
+        raise ValueError("p_values must lie in [0, 1]")
+
+    n_values = p_array.size
+    order = np.argsort(p_array)
+    sorted_p = p_array[order]
+    ranks = np.arange(1, n_values + 1, dtype=np.float64)
+    sorted_q = sorted_p * n_values / ranks
+
+    # Enforce monotonicity from largest to smallest sorted p-value.
+    sorted_q = np.minimum.accumulate(sorted_q[::-1])[::-1]
+    sorted_q = np.clip(sorted_q, 0.0, 1.0)
+
+    q_values = np.empty_like(sorted_q)
+    q_values[order] = sorted_q
+    return [float(value) for value in q_values]
+
+
 def cohens_dz(differences: np.ndarray) -> float:
     """Compute Cohen's dz for paired samples."""
 
@@ -169,6 +207,32 @@ def cohens_dz(differences: np.ndarray) -> float:
     if std == 0 or not np.isfinite(std):
         return 0.0
     return float(np.mean(differences) / std)
+
+
+def add_model_fdr_fields(
+    comparisons: list[dict[str, Any]],
+    alpha: float,
+) -> list[dict[str, Any]]:
+    """Add within-model BH q-values and significance flags."""
+
+    q_values = benjamini_hochberg([row["p_value"] for row in comparisons])
+    for row, q_value in zip(comparisons, q_values):
+        row["p_value_fdr_bh_model"] = float(q_value)
+        row["significant_fdr_bh_model"] = bool(q_value <= alpha)
+    return comparisons
+
+
+def add_global_fdr_fields(
+    comparisons: list[dict[str, Any]],
+    alpha: float,
+) -> list[dict[str, Any]]:
+    """Add global BH q-values and significance flags across all models."""
+
+    q_values = benjamini_hochberg([row["p_value"] for row in comparisons])
+    for row, q_value in zip(comparisons, q_values):
+        row["p_value_fdr_bh_global"] = float(q_value)
+        row["significant_fdr_bh_global"] = bool(q_value <= alpha)
+    return comparisons
 
 
 def analyze_rows(
@@ -230,12 +294,17 @@ def write_summary(
     model: str,
     count: int,
     comparisons: list[dict[str, Any]],
+    alpha: float,
 ) -> None:
     """Write a compact Markdown summary for one model's statistical output."""
 
-    strongest = sorted(comparisons, key=lambda row: abs(row["cohens_dz"]), reverse=True)[:5]
-    strongest_anisotropy = [
-        row for row in strongest_by_effect(comparisons) if row["metric"] == "anisotropy_channel"
+    significant = [
+        row for row in strongest_by_effect(comparisons)
+        if row.get("significant_fdr_bh_global")
+    ]
+    strongest_primary = [
+        row for row in strongest_by_effect(comparisons)
+        if row["metric"] in PRIMARY_REPORTING_METRICS
     ][:5]
 
     lines = [
@@ -250,11 +319,15 @@ def write_summary(
         "## Number of prompts",
         f"- {count}",
         "",
-        "## Strongest differences by absolute effect size",
-        *format_rows(strongest),
+        "## Multiple-comparison correction",
+        f"- alpha: {format_number(alpha)}",
+        "- Benjamini-Hochberg FDR correction was applied within each model and globally across requested models.",
         "",
-        "## Strongest differences for anisotropy_channel",
-        *format_rows(strongest_anisotropy),
+        "## Strongest globally FDR-significant effects",
+        *format_rows(significant[:5]),
+        "",
+        "## Strongest primary-reporting-metric effects",
+        *format_rows(strongest_primary),
         "",
         "## Caveat",
         "Statistical analysis is representation-level only, not downstream performance.",
@@ -270,6 +343,18 @@ def strongest_by_effect(comparisons: list[dict[str, Any]]) -> list[dict[str, Any
     return sorted(comparisons, key=lambda row: abs(row["cohens_dz"]), reverse=True)
 
 
+def format_number(value: float) -> str:
+    """Format compact table values with four significant digits."""
+
+    return f"{float(value):.4g}"
+
+
+def format_ci(row: dict[str, Any]) -> str:
+    """Format a 95% confidence interval for Markdown tables."""
+
+    return f"[{format_number(row['ci_low'])}, {format_number(row['ci_high'])}]"
+
+
 def format_rows(rows: list[dict[str, Any]]) -> list[str]:
     """Format comparison rows for Markdown summaries."""
 
@@ -280,10 +365,92 @@ def format_rows(rows: list[dict[str, Any]]) -> list[str]:
         (
             f"- baseline={row['baseline']}, channel={row['channel']}, "
             f"metric={row['metric']}, mean_difference={row['mean_difference']:.6g}, "
-            f"cohens_dz={row['cohens_dz']:.6g}, p_value={row['p_value']:.6g}"
+            f"cohens_dz={row['cohens_dz']:.6g}, "
+            f"q_global={row.get('p_value_fdr_bh_global', float('nan')):.6g}"
         )
         for row in rows
     ]
+
+
+def primary_results_rows(comparisons: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Select compact primary-reporting rows for shuffled/random controls."""
+
+    return [
+        row for row in comparisons
+        if row["baseline"] in CONTROL_BASELINES
+        and row["metric"] in PRIMARY_REPORTING_METRICS
+    ]
+
+
+def write_primary_results_table(path: Path, comparisons: list[dict[str, Any]]) -> None:
+    """Write a compact Markdown table of primary reporting comparisons."""
+
+    rows = sorted(
+        primary_results_rows(comparisons),
+        key=lambda row: (row["channel"], row["metric"], row["baseline"]),
+    )
+    lines = [
+        "| channel | metric | baseline | chaos_mean | baseline_mean | mean_difference | 95% CI | p_value | p_value_fdr_bh_model | p_value_fdr_bh_global | cohens_dz | significant_fdr_bh_global |",
+        "|---:|---|---|---:|---:|---:|---|---:|---:|---:|---:|---|",
+    ]
+    for row in rows:
+        lines.append(
+            "| "
+            + " | ".join(
+                [
+                    str(row["channel"]),
+                    row["metric"],
+                    row["baseline"],
+                    format_number(row["chaos_mean"]),
+                    format_number(row["baseline_mean"]),
+                    format_number(row["mean_difference"]),
+                    format_ci(row),
+                    format_number(row["p_value"]),
+                    format_number(row["p_value_fdr_bh_model"]),
+                    format_number(row["p_value_fdr_bh_global"]),
+                    format_number(row["cohens_dz"]),
+                    str(bool(row["significant_fdr_bh_global"])),
+                ]
+            )
+            + " |"
+        )
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def write_top_fdr_effects(path: Path, comparisons: list[dict[str, Any]]) -> None:
+    """Write compact top-effect sections for globally significant rows."""
+
+    significant = [
+        row for row in strongest_by_effect(comparisons)
+        if row.get("significant_fdr_bh_global")
+    ]
+    anisotropy = [
+        row for row in significant if row["metric"] == "anisotropy_channel"
+    ][:10]
+    controls = [
+        row for row in significant if row["baseline"] in CONTROL_BASELINES
+    ][:10]
+
+    lines = [
+        "# Top FDR-Corrected Effects",
+        "",
+        "## Top 10 effects by absolute Cohen's dz",
+        *format_rows(significant[:10]),
+        "",
+        "## Top 10 anisotropy_channel effects",
+        *format_rows(anisotropy),
+        "",
+        "## Top 10 shuffled/random trajectory control effects",
+        *format_rows(controls),
+        "",
+        "## Caveat",
+        "Representation-level only, not downstream performance.",
+        "",
+    ]
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("\n".join(lines), encoding="utf-8")
 
 
 def run_analysis(args: argparse.Namespace) -> tuple[list[dict[str, Any]], list[str]]:
@@ -291,6 +458,7 @@ def run_analysis(args: argparse.Namespace) -> tuple[list[dict[str, Any]], list[s
 
     combined: list[dict[str, Any]] = []
     missing: list[str] = []
+    model_outputs: list[tuple[str, int, list[dict[str, Any]]]] = []
 
     for model in args.models:
         try:
@@ -305,13 +473,42 @@ def run_analysis(args: argparse.Namespace) -> tuple[list[dict[str, Any]], list[s
             bootstrap_samples=args.bootstrap_samples,
             seed=args.seed,
         )
-        model_output_dir = args.output_dir / model
-        write_json(model_output_dir / "statistical_comparisons.json", comparisons)
-        write_summary(model_output_dir / "summary.md", model, prompt_count(rows), comparisons)
+        add_model_fdr_fields(comparisons, args.alpha)
+        model_outputs.append((model, prompt_count(rows), comparisons))
         combined.extend(comparisons)
 
     if combined:
+        add_global_fdr_fields(combined, args.alpha)
+        for model, count, comparisons in model_outputs:
+            model_output_dir = args.output_dir / model
+            write_json(model_output_dir / "statistical_comparisons.json", comparisons)
+            write_json(
+                model_output_dir / "fdr_statistical_comparisons.json",
+                comparisons,
+            )
+            write_primary_results_table(
+                model_output_dir / "primary_results_table.md",
+                comparisons,
+            )
+            write_top_fdr_effects(model_output_dir / "top_fdr_effects.md", comparisons)
+            write_summary(
+                model_output_dir / "summary.md",
+                model,
+                count,
+                comparisons,
+                args.alpha,
+            )
+
         write_json(args.output_dir / "combined_statistical_comparisons.json", combined)
+        write_json(
+            args.output_dir / "combined_fdr_statistical_comparisons.json",
+            combined,
+        )
+        write_primary_results_table(
+            args.output_dir / "combined_primary_results_table.md",
+            combined,
+        )
+        write_top_fdr_effects(args.output_dir / "combined_top_fdr_effects.md", combined)
 
     return combined, missing
 

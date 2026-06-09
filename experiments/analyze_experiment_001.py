@@ -382,37 +382,78 @@ def primary_results_rows(comparisons: list[dict[str, Any]]) -> list[dict[str, An
     ]
 
 
-def write_primary_results_table(path: Path, comparisons: list[dict[str, Any]]) -> None:
+def write_primary_results_table(
+    path: Path,
+    comparisons: list[dict[str, Any]],
+    include_model: bool = False,
+) -> None:
     """Write a compact Markdown table of primary reporting comparisons."""
 
     rows = sorted(
         primary_results_rows(comparisons),
-        key=lambda row: (row["channel"], row["metric"], row["baseline"]),
+        key=lambda row: (
+            row["model"] if include_model else "",
+            row["channel"],
+            row["metric"],
+            row["baseline"],
+        ),
     )
+    headers = [
+        "channel",
+        "metric",
+        "baseline",
+        "chaos_mean",
+        "baseline_mean",
+        "mean_difference",
+        "95% CI",
+        "p_value",
+        "p_value_fdr_bh_model",
+        "p_value_fdr_bh_global",
+        "cohens_dz",
+        "significant_fdr_bh_global",
+    ]
+    alignments = [
+        "---:",
+        "---",
+        "---",
+        "---:",
+        "---:",
+        "---:",
+        "---",
+        "---:",
+        "---:",
+        "---:",
+        "---:",
+        "---",
+    ]
+    if include_model:
+        headers.insert(0, "model")
+        alignments.insert(0, "---")
+
     lines = [
-        "| channel | metric | baseline | chaos_mean | baseline_mean | mean_difference | 95% CI | p_value | p_value_fdr_bh_model | p_value_fdr_bh_global | cohens_dz | significant_fdr_bh_global |",
-        "|---:|---|---|---:|---:|---:|---|---:|---:|---:|---:|---|",
+        "| " + " | ".join(headers) + " |",
+        "| " + " | ".join(alignments) + " |",
     ]
     for row in rows:
+        values = [
+            str(row["channel"]),
+            row["metric"],
+            row["baseline"],
+            format_number(row["chaos_mean"]),
+            format_number(row["baseline_mean"]),
+            format_number(row["mean_difference"]),
+            format_ci(row),
+            format_number(row["p_value"]),
+            format_number(row["p_value_fdr_bh_model"]),
+            format_number(row["p_value_fdr_bh_global"]),
+            format_number(row["cohens_dz"]),
+            str(bool(row["significant_fdr_bh_global"])),
+        ]
+        if include_model:
+            values.insert(0, row["model"])
+
         lines.append(
-            "| "
-            + " | ".join(
-                [
-                    str(row["channel"]),
-                    row["metric"],
-                    row["baseline"],
-                    format_number(row["chaos_mean"]),
-                    format_number(row["baseline_mean"]),
-                    format_number(row["mean_difference"]),
-                    format_ci(row),
-                    format_number(row["p_value"]),
-                    format_number(row["p_value_fdr_bh_model"]),
-                    format_number(row["p_value_fdr_bh_global"]),
-                    format_number(row["cohens_dz"]),
-                    str(bool(row["significant_fdr_bh_global"])),
-                ]
-            )
-            + " |"
+            "| " + " | ".join(values) + " |"
         )
 
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -507,6 +548,7 @@ def run_analysis(args: argparse.Namespace) -> tuple[list[dict[str, Any]], list[s
         write_primary_results_table(
             args.output_dir / "combined_primary_results_table.md",
             combined,
+            include_model=True,
         )
         write_top_fdr_effects(args.output_dir / "combined_top_fdr_effects.md", combined)
 

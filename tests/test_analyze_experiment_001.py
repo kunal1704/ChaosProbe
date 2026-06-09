@@ -174,6 +174,7 @@ def test_fdr_fields_are_added_and_respect_alpha():
 def test_compact_table_formatting_works_on_toy_rows(tmp_path):
     rows = [
         {
+            "model": "gpt2",
             "baseline": "shuffled_trajectory",
             "channel": 0,
             "metric": "anisotropy_channel",
@@ -189,6 +190,7 @@ def test_compact_table_formatting_works_on_toy_rows(tmp_path):
             "significant_fdr_bh_global": True,
         },
         {
+            "model": "gpt2",
             "baseline": "gaussian_value",
             "channel": 0,
             "metric": "anisotropy_channel",
@@ -213,3 +215,50 @@ def test_compact_table_formatting_works_on_toy_rows(tmp_path):
     assert "gaussian_value" not in table
     assert "p_value_fdr_bh_global" in table
     assert "True" in table
+    assert "| channel | metric | baseline |" in table
+    assert "| model | channel |" not in table
+
+
+def test_combined_compact_table_includes_model_column(tmp_path):
+    rows = [
+        {
+            "model": "gpt2",
+            "baseline": "random_trajectory",
+            "channel": 0,
+            "metric": "mean_cosine_similarity",
+            "chaos_mean": 0.1,
+            "baseline_mean": 0.2,
+            "mean_difference": -0.1,
+            "ci_low": -0.2,
+            "ci_high": -0.05,
+            "p_value": 0.001,
+            "p_value_fdr_bh_model": 0.002,
+            "p_value_fdr_bh_global": 0.003,
+            "cohens_dz": -1.23456,
+            "significant_fdr_bh_global": True,
+        },
+        {
+            "model": "distilgpt2",
+            "baseline": "random_trajectory",
+            "channel": 0,
+            "metric": "mean_cosine_similarity",
+            "chaos_mean": 0.3,
+            "baseline_mean": 0.4,
+            "mean_difference": -0.1,
+            "ci_low": -0.2,
+            "ci_high": -0.05,
+            "p_value": 0.001,
+            "p_value_fdr_bh_model": 0.002,
+            "p_value_fdr_bh_global": 0.003,
+            "cohens_dz": -1.23456,
+            "significant_fdr_bh_global": True,
+        },
+    ]
+    output_path = tmp_path / "combined_table.md"
+
+    write_primary_results_table(output_path, rows, include_model=True)
+    table = output_path.read_text(encoding="utf-8")
+
+    assert "| model | channel | metric | baseline |" in table
+    assert "gpt2" in table
+    assert "distilgpt2" in table
